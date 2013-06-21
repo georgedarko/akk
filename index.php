@@ -2,7 +2,7 @@
 session_start();
 include 'functions/housekeeping.php';
 //check if the user logged in has permissions to this page
-$is_valid=167;//validate_user(array(1,2,3));
+$is_valid=validate_user(array(1,2));
 if ($is_valid==165){
     $page_title="Login";
 }
@@ -11,6 +11,13 @@ if ($is_valid==166){
 }
 if ($is_valid==167){
     $page_title=$pt[$_REQUEST['p']];
+}
+
+function yes_no($val){
+    if ($val==1) return "YES";
+    if (strtoupper($val)=="YES") return 1;
+    if ($val==-1) return "NO";
+    if (strtoupper($val)=="YES") return -1;
 }
 ?>
 <!DOCTYPE html>
@@ -27,6 +34,7 @@ if ($is_valid==167){
     	<link href="bootstrap/css/bootstrap.css" rel="stylesheet">
     	<link href="fontawesome/css/font-awesome.min.css" rel="stylesheet">
     	<link href="bootstrap/css/bootstrap-responsive.css" rel="stylesheet">
+    	<link href="bootstrap/css/pagination.css" rel="stylesheet">
 
 		<!-- The HTML5 shim, for IE6-8 support of HTML5 elements -->
 		<!--[if lt IE 9]>
@@ -48,7 +56,7 @@ if ($is_valid==167){
           <div class="nav-collapse collapse">
             <ul class="nav pull-right">
             	
-				<li><a href="#">Logout</a></li>
+				<li><a href="actions/logout.php">Logout</a></li>
             </ul>
           </div>
         </div>

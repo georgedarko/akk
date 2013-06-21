@@ -340,7 +340,7 @@
     function display_table($content, $field_titles, $field_sizes, $actions=false)
     {
         // start of the table
-        $table="<table class='table table-bordered'>";
+        $table="<table class='table table-striped table-bordered'>";
         
         //start the header for the table;
         $header="<thead class='data'>";
@@ -364,7 +364,8 @@
                 $header.="<th width='{$field_sizes[$name]}' class='data'><a href='{$sort_link}&ob=".(stripos($_REQUEST['ob'],$name)!==false?(stripos($_REQUEST['ob'],"ASC")!==false?$name." ASC":$name." DESC"):$name)."'><strong>{$title}</strong></a></th>";
 	}
         //if there are action links/buttons, add a column for that but only if there are acuall results to display
-        $header.="<form onsubmit='location.href=\"".$_SERVER['PHP_SELF']."?p=".$_GET['p']."&loc=".$_GET['loc']."&s=\"+this.s.value; return false;'><th class='data'>Search: <input type='text' name='s' value='{$_REQUEST['s']}' /><input type='button' value='Go' onclick='location.href=\"".$_SERVER['PHP_SELF']."?p=".$_GET['p']."&loc=".$_GET['loc']."&s=\"+this.form.s.value' /></th></form>";
+        //$header.="<form onsubmit='location.href=\"".$_SERVER['PHP_SELF']."?p=".$_GET['p']."&loc=".$_GET['loc']."&s=\"+this.s.value; return false;'><th class='data'>Search: <input type='text' name='s' value='{$_REQUEST['s']}' /><input type='button' value='Go' onclick='location.href=\"".$_SERVER['PHP_SELF']."?p=".$_GET['p']."&loc=".$_GET['loc']."&s=\"+this.form.s.value' /></th></form>";
+        $header.="<th class='data'></th></form>";
             
         // end the header for the table;
         $header.="</thead>\n";
