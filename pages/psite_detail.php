@@ -69,7 +69,7 @@
 			</td>
 		</tr>
 	</table>
-	<h4>ICNIRP VALUES</h4>
+	<h4>ICNIRP Values</h4>
 	<table class="table table-bordered">
 		<tr>
 			<?php

@@ -1,8 +1,15 @@
 <?php	
-die('terminated');
+
 include_once "../functions/housekeeping.php";
+$imgs=query("SELECT * FROM akk_isite_issue WHERE image_url  IS NOT NULL");
+foreach ($imgs as $i){
+    if (is_file("../../akk1/{$i['image_url']}")){
+        echo $i['isite_id']."-".$i['issue_id']."<br/>";
+        $akk[]=$i['isite_id'];
+    }
 
-
+}    echo implode(",",$akk);
+die('terminated');
 $handle = fopen("temp.csv", "r");
 $data = fgetcsv($handle);
 $fields=array("isite_id","cell_site_id","isite_name","district_id","date_added","added_by");

@@ -3,6 +3,9 @@
     $isite_id=sql_safe($link,$_REQUEST['isite_id']);
     $data=read("akk_isite","isite_id",$isite_id);
 ?>
+<script src="lightbox/js/jquery-1.7.2.min.js"></script>
+<script src="lightbox/js/lightbox.js"></script>
+<link href="lightbox/css/lightbox.css" rel="stylesheet" />
 <style>
     .text-bold{
         font-weight: bold;
@@ -75,7 +78,7 @@
 			</td>
 		</tr>
 	</table>
-	<h4>Cell Site ISSUES </h4>
+	<h4>Cell Site Issues </h4>
 	<table class="table table-bordered">
 		<tr>
 			<?php
@@ -87,8 +90,8 @@
                                 <td class='text-bold'>
                                         {$i['issue_text']}
                                 </td>
-                                <td class='text-bold {$color}'>
-                                        ".yes_no($i['response'])."
+                                <td>
+                                        <a  class='text-bold {$color}' href = \"../../akk1/{$i['image_url']}\" rel=\"lightbox\">".yes_no($i['response'])."</a>
                                 </td>
                              </tr>
                                 ";
@@ -96,5 +99,5 @@
                         ?>
 
 	</table>
-        <a href="?p=query_icnirp&loc=forms&qt=3" class="btn btn-success">Back</a>
+        <a href="?p=query_issues&loc=forms&qt=3" class="btn btn-success">Back</a>
 </div>

@@ -62,8 +62,10 @@ $mail_password="";
  * ********************************************************************/
 
 $pt['query_icnirp']="Query Icnirp Values";
-
-
+$pt['query_issues']="Query Site Issues";
+$pt['psite_detail']="Cell Site Details";
+$pt['isite_detail']="Cell Site Details";
+$pt['graphs']="Graphs";
 
 /**************************
  *

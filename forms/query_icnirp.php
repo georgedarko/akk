@@ -88,12 +88,12 @@ $params[0]['array_name']="region_array";
 $params[0]['default_text']="Select Region";
 $params[0]['item_id']="region_id";
 $params[0]['item_name']="region_name";
-$params[0]['data']=query("SELECT * FROM akk_region");
+$params[0]['data']=query("SELECT * FROM akk_region ORDER BY district_name ASC");
 $params[1]['array_name']="district_array";
 $params[1]['default_text']="All Districts";
 $params[1]['item_id']="district_id";
 $params[1]['item_name']="district_name";
-$params[1]['data']=query("SELECT * FROM akk_district");
+$params[1]['data']=query("SELECT * FROM akk_district ORDER BY district_name ASC");
 echo multi_drop_down($params);
 ?>
 </script>
