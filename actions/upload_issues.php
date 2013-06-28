@@ -3,13 +3,14 @@
 include_once "../functions/housekeeping.php";
 $imgs=query("SELECT * FROM akk_isite_issue WHERE image_url  IS NOT NULL");
 foreach ($imgs as $i){
-    if (is_file("../../akk1/{$i['image_url']}")){
-        echo $i['isite_id']."-".$i['issue_id']."<br/>";
-        $akk[]=$i['isite_id'];
+    if ($i['image_url']!=""){
+        if (!is_file("../../akk1/{$i['image_url']}")){
+            echo $i['isite_id']."-".$i['issue_id']."<br/>";
+            $akk[]=$i['isite_issue_id'];
+        }
     }
-
 }    echo implode(",",$akk);
-die('terminated');
+die('terminated'.count($akk));
 $handle = fopen("temp.csv", "r");
 $data = fgetcsv($handle);
 $fields=array("isite_id","cell_site_id","isite_name","district_id","date_added","added_by");
@@ -34,8 +35,11 @@ for ($i=0;!feof($handle);$i++){
         }
         foreach($issues as $iss){
             $col=($iss['issue_id']*2)+3;
+            $icount++;
             if (yes_no($data[$col])==$iss['non_compliant_response']){
+                $inccount++;
                 if ($data[$col+1]!=""&&$data[$col+1]!="null"){
+                    $incpiccount++;
                     if (substr($data[$col+1], strlen($data[$col+1])-4)==".jpg"){
                         $url=$data[$col+1];
                     }
@@ -43,12 +47,19 @@ for ($i=0;!feof($handle);$i++){
                         $url=$data[$col+1].".jpg";
                     }
                     $values_i[]=array(($isite_id+$i),$iss['issue_id'],yes_no($data[$col]),$data[2]."/".$url,time(),1);
+                    if (is_file("../../akk1/".$data[2]."/".$url)){
+                        
+                        $nopicarray2[]=$isite_id+$i;
+                    }
                 }
                 else{
+                    $incnopiccount++;
+                    $nopicarray[]=$isite_id+$i;
                     $values_i[]=array(($isite_id+$i),$iss['issue_id'],($iss['non_compliant_response']*-1),"*-null-*",time(),1);
                 }
             }
             else{
+                $iccount++;
                 $values_i[]=array(($isite_id+$i),$iss['issue_id'],$iss['non_compliant_response']*(-1),"*-null-*",time(),1);
             }
             
@@ -56,7 +67,7 @@ for ($i=0;!feof($handle);$i++){
         $values[]=array(($isite_id+$i),sql_safe($link,$data[1]),sql_safe($link,$data[2]),$district_id,time(),1);
         if (count($values_i)>1000){
             echo "<br/><br/><br/>";
-            $result_i=add("akk_isite_issue",$fields_i,$values_i,true);
+            $result_i=add("akk_isite_issue",$fields_i,$values_i);
             flush();
             $values_i=array();
         }
@@ -66,9 +77,15 @@ fclose($handle);
 
 $result=add("akk_isite",$fields,$values);
 echo "<br/><br/><br/>";
-$result_o=add("akk_isite_operator",$fields_o,$values_o,true);
-//echo "<br/><br/><br/>";
-//$result_i=add("akk_isite_issue",$fields_i,$values_i,true);
+$result_o=add("akk_isite_operator",$fields_o,$values_o);
+echo "issue count:$icount<br/>
+    issue non compliant:$inccount<br/>
+    issue non compliant picture:$incpiccount<br/>
+    issue non compliant no picture:$incnopiccount<br/>
+    issue compliant:$iccount<br/><br/><br/>
+    no pics at all:".count($nopicarray)."--".implode(",",$nopicarray)."<br/>
+    should be pics:".count($nopicarray2)."--".  implode(",", $nopicarray2);
+
 mysqli_close($link);
 
 function add_or_fetch($district_name,$region_id){

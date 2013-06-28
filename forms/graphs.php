@@ -1,6 +1,6 @@
 <script type="text/javascript">
 function validate_values(frm){
-    elements=document.getElementsByName('operator_id[]');
+    /*elements=document.getElementsByName('operator_id[]');
     var isset=false;
     for (var i=0;i<elements.length;i++){
         if (elements[i].checked){
@@ -8,7 +8,7 @@ function validate_values(frm){
             break;
            
         }
-    }
+    }*/
     if (!isset){
         alert ("Choose one or more operators")
         return false;
@@ -29,7 +29,7 @@ function validate_values(frm){
 }
 <?
 $params[0]['array_name']="region_array";
-$params[0]['default_text']="Select Region";
+$params[0]['default_text']="All Regions";
 $params[0]['item_id']="region_id";
 $params[0]['item_name']="region_name";
 $params[0]['data']=query("SELECT * FROM akk_region");
@@ -55,7 +55,7 @@ echo multi_drop_down($params1);
 </script>
 <div class="row-fluid">
     <div class="span12">
-        <form class="form well" action="index.php?p=query_issues&loc=forms" onsubmit="return validate_values(this)" method="post">
+        <form class="form well" action="index.php?p=graphs&loc=forms" onsubmit="return validate_values(this)" method="post">
             <input type="hidden" name="qt" value="2" />
             <div class="row-fluid">
                 <div class="span5">
@@ -85,7 +85,7 @@ echo multi_drop_down($params1);
                 <div class="span3">
                     <label>Region</label>
                     <select id="region_id" name="region_id" class="input-block-level" onchange="reload_options(this.value,this.form.district_id,district_array);">
-                        <option value="0">Select Region</option>
+                        <option value="0">All Region</option>
                         <?php drop_downs('akk_region','region_id','region_name','region_name',' date_deleted IS NULL')?>
                     </select>
                 </div>
@@ -124,32 +124,66 @@ echo multi_drop_down($params1);
 <div class="row-fluid">
     <div class="span12">
         		<?php 
-                        $data=query("SELECT o.operator_name, COUNT(i.isite_id) AS cell_site_count
-                                FROM akk_isite i, akk_isite_issue ii, akk_issue iss, akk_isite_operator io, akk_operator o, akk_district d, akk_region r
-                                WHERE i.isite_id=ii.isite_id
-                                AND ii.issue_id=iss.issue_id
-                                AND i.isite_id=io.isite_id
-                                AND o.operator_id=io.operator_id
-                                AND d.district_id=i.district_id
-                                AND d.region_id=r.region_id
-                                AND ii.issue_id={$_REQUEST['issue_id']}
-                                AND o.operator_id IN (".implode(",", $_REQUEST['operator_id']).")
-                                AND (ii.response+non_compliant_response)=0
-                                GROUP BY o.operator_id");
+				
+                                if($_REQUEST['qt']==2){
+                                        $s=" AND iss.issue_id={$_REQUEST['issue_id']}";
+                                    if ($_REQUEST['district_id']!=0){
+                                        $s.=" AND d.district_id='{$_REQUEST['district_id']}'";
+                                    }
+                                    elseif ($_REQUEST['region_id']!=0){
+                                        $s.=" AND r.region_id='{$_REQUEST['region_id']}'";
+                                    }
+                                    
+                                    $s.=" AND o.operator_id IN (".implode(",", $_REQUEST['operator_id']).")";
+                               
+                                    $data=query("SELECT o.operator_name, COUNT( DISTINCT i.isite_id) AS cell_site_count
+                                                FROM akk_isite i, akk_operator o, akk_district d, akk_region r, akk_isite_operator io,akk_isite_issue ii, akk_issue iss  
+                                                        
+                                                WHERE i.date_deleted IS NULL
+                                                AND i.district_id=d.district_id
+                                                AND d.region_id=r.region_id
+                                                AND i.isite_id=io.isite_id
+                                                AND o.operator_id=io.operator_id
+                                                AND i.isite_id=ii.isite_id
+                                                AND iss.issue_id=ii.issue_id
+                                                AND (ii.response+non_compliant_response)<>0 
+                                                {$s}
+                                                GROUP BY o.operator_id");
 
-                                //form the xml for the graph
-                                $data_string="<graph caption='Cell Site Count' xAxisName='Operator' yAxisName='Number of Cell Sites' showNames='1' showValues='0' rotateNames='1' showColumnShadow='1' animation='1' showAlternateHGridColor='1' AlternateHGridColor='ff5904' divLineColor='ff5904' divLineAlpha='20' alternateHGridAlpha='5' decimalPrecision='0' canvasBorderColor='666666' baseFontColor='666666'>";
-                                //only add data if  results were returned 
+                                    /*          $ss.=" WHERE o.operator_id IN (".implode(",", $_REQUEST['operator_id']).")";
+                               
+                                    $data=query("SELECT o.operator_name, COUNT( DISTINCT rest.isite_id) AS cell_site_count 
+                                                FROM akk_operator o LEFT JOIN (SELECT i.*,io.operator_id
+                                                FROM akk_isite i, akk_isite_issue ii, akk_issue iss, akk_isite_operator io, akk_district d, akk_region r 
+                                                WHERE i.isite_id=ii.isite_id 
+                                                AND ii.issue_id=iss.issue_id 
+                                                AND i.isite_id=io.isite_id 
+                                                AND d.district_id=i.district_id 
+                                                AND d.region_id=r.region_id 
+                                                {$s}
+                                                AND (ii.response+non_compliant_response)<>0 ) rest ON o.operator_id=rest.operator_id
+                                                WHERE o.operator_id IN (1,2,3,4,5,6)
+                                                GROUP BY o.operator_id",true);
+                        */
 
-                                foreach ($data as $row){
-                                        $data_string.="<set name='{$row['operator_name']}' value='{$row['cell_site_count']}' hoverText='{$row['operator_name']}' />";
+                                    //form the xml for the graph
+                                    $data_string="<graph caption='Cell Site Count' xAxisName='Operator' yAxisName='Number of Cell Sites' showNames='1' showValues='0' rotateNames='0' showColumnShadow='1' animation='1' showAlternateHGridColor='1' AlternateHGridColor='ff5904' divLineColor='ff5904' divLineAlpha='20' alternateHGridAlpha='5' decimalPrecision='0' canvasBorderColor='666666' baseFontColor='666666'>";
+                                    //only add data if  results were returned 
+
+                                    if (is_array($data)){
+                                        foreach ($data as $row){
+                                                $data_string.="<set name='{$row['operator_name']}' value='{$row['cell_site_count']}' hoverText='{$row['operator_name']}' />";
+                                        }
+                                    }
+                                    else{
+                                        echo "No data found.";
+                                    }
+                                    $data_string.="</graph>";
                                 }
-                                
-                                $data_string.="</graph>";
                                 ?>
                                 <div id="cell_frequency_div">The chart will appear within this DIV. This text will be replaced by the chart.</div>
                                 <script type="text/javascript">
-                                var cell_frequency = new FusionCharts("js/FusionCharts/Charts/FCF_Column2D.swf?ChartNoDataText=No data found.", "cell_frequency_graph", "380", "600");
+                                var cell_frequency = new FusionCharts("FusionCharts/Charts/FCF_Column2D.swf?ChartNoDataText=No data found.", "cell_frequency_graph", "980", "600");
                                 cell_frequency.addParam("WMode", "Transparent");
                                 cell_frequency.setDataXML("<?php echo $data_string ?>");
                                 cell_frequency.render("cell_frequency_div");

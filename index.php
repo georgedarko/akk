@@ -35,7 +35,7 @@ function yes_no($val){
     	<link href="fontawesome/css/font-awesome.min.css" rel="stylesheet">
     	<link href="bootstrap/css/bootstrap-responsive.css" rel="stylesheet">
     	<link href="bootstrap/css/pagination.css" rel="stylesheet">
-
+        <script language="JavaScript" src="FusionCharts/JSClass/FusionCharts.js"></script>
 		<!-- The HTML5 shim, for IE6-8 support of HTML5 elements -->
 		<!--[if lt IE 9]>
 	  		<script src="assets/js/html5shiv.js"></script>
