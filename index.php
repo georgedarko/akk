@@ -102,6 +102,16 @@ function yes_no($val) {
                                 echo "<a href='?p=query_icnirp&loc=forms'>Query Icnirp Values</a>";
                                 echo "</li>";
                             }
+                            if($_REQUEST['p'] == "graphs"){
+                                echo "<li class='active'>";
+                                echo "<a href='?p=graphs&loc=forms'>Graphs</a>";
+                                echo "</li>";
+                            }
+                            else{
+                                echo "<li>";
+                                echo "<a href='?p=graphs&loc=forms'>Graphs</a>";
+                                echo "</li>";
+                            }
                             ?>
                         </ul>
                     </div>

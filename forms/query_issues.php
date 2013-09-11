@@ -1,11 +1,20 @@
 <script type="text/javascript">
 function validate_values(frm){
-    /*element=frm.region_id;
-    if (element.options[element.selectedIndex].value=="0"){
-        alert ("Select a Region");
-        element.focus();
-        return false;
-    }*/
+    element=frm.response
+    if (element.selectedIndex!=0){
+        element=frm.category_id;
+        if (element.options[element.selectedIndex].value=="0"){
+            alert ("Select a Category");
+            element.focus();
+            return false;
+        }
+        element=frm.issue_id;
+        if (element.options[element.selectedIndex].value=="0"){
+            alert ("Select a Issue");
+            element.focus();
+            return false;
+        }
+    }
     elements=document.getElementsByName('operator_id[]');
     var isset=false;
     for (var i=0;i<elements.length;i++){
@@ -46,7 +55,7 @@ $params[1]['array_name']="district_array";
 $params[1]['default_text']="All Districts";
 $params[1]['item_id']="district_id";
 $params[1]['item_name']="district_name";
-$params[1]['data']=query("SELECT * FROM akk_district");
+$params[1]['data']=query("SELECT DISTINCT d.* FROM akk_district d, akk_isite i WHERE d.district_id=i.district_id ORDER BY district_name ASC");
 echo multi_drop_down($params);
 
 $params1[0]['array_name']="category_array";
@@ -85,30 +94,52 @@ echo multi_drop_down($params1);
                     <label>Region</label>
                     <select id="region_id" name="region_id" class="input-block-level" onchange="reload_options(this.value,this.form.district_id,district_array);">
                         <option value="0">All Regions</option>
-                        <?php drop_downs('akk_region','region_id','region_name','region_name',' date_deleted IS NULL')?>
+                  <?php 
+                  if ($_REQUEST['region_id']!=0){
+                    drop_downs_selected('akk_region','region_id','region_name',$_REQUEST['region_id'],'region_name',' date_deleted IS NULL');
+                  }
+                  else{
+                      drop_downs('akk_region','region_id','region_name','region_name',' date_deleted IS NULL');
+                  }
+                            ?>
                     </select>
                 </div>
                 <div class="span3">
                     <label>District</label>
                     <select id="district_id" name="district_id" class="input-block-level">
                         <option value="0">All Districts</option>
+                    <?php 
+                        if ($_REQUEST['district_id']!=0){
+                            drop_downs_selected('akk_district','district_id','district_name',$_REQUEST['district_id'],'district_name'," date_deleted IS NULL AND region_id={$_REQUEST['region_id']}");
+                        }
+                    ?>
                     </select>
                 </div>
                 <div class="span5">
                     <label>Operator</label>
-                    <?php
-                    $opts=query("SELECT * FROM akk_operator WHERE date_deleted IS NULL");
-                    if (is_array($opts)){
-                        foreach ($opts as $o){
+                <?php
+                $opts=query("SELECT * FROM akk_operator WHERE date_deleted IS NULL");
+                if (is_array($opts)){
+                    foreach ($opts as $o){
+                        if (isset($_REQUEST['operator_id'])){
                             echo "
-                <label class='checkbox inline'>
-                    <input type='checkbox' checked name='operator_id[]' value='".$o['operator_id']."'> {$o['operator_name']}
-                </label>
+                                <label class='checkbox inline'>
+                                    <input type='checkbox'  name='operator_id[]' ".(in_array($o['operator_id'],$_REQUEST['operator_id'])?"checked":"")." value='".$o['operator_id']."'> {$o['operator_name']}
+                                </label>
+
+                                ";
+                        }
+                        else{
+                            echo "
+                                <label class='checkbox inline'>
+                                    <input type='checkbox' checked name='operator_id[]' value='".$o['operator_id']."'> {$o['operator_name']}
+                                </label>
 
                                 ";
                         }
                     }
-                    ?>
+                }
+                ?>
                 </div>
             </div>
             <hr>
@@ -117,21 +148,33 @@ echo multi_drop_down($params1);
                     <label>Category</label>
                     <select type="text" id="category_id" name="category_id"class="input-block-level" onchange="reload_options(this.value,this.form.issue_id,issue_array);">
                         <option value="0">All Categories</option>
-                        <?php drop_downs('akk_category','category_id','category_name','category_name',' date_deleted IS NULL')?>                        
+                        <?php 
+                        if ($_REQUEST['category_id']!=0){
+                            drop_downs_selected('akk_category','category_id','category_name',$_REQUEST['category_id'],'category_name',' date_deleted IS NULL');
+                        }
+                        else{
+                            drop_downs('akk_category','category_id','category_name','category_name',' date_deleted IS NULL');
+                        }    
+                        ?>                        
                     </select>
                 </div>
                 <div class="span5">
                     <label>Issue</label>
                     <select type="text" id="issue_id" name="issue_id" class="input-block-level">
                         <option value="0">All Issues</option>
+                        <?php
+                        if ($_REQUEST['issue_id']!=0){
+                            drop_downs_selected('akk_issue','issue_id','issue_text',$_REQUEST['issue_id'],'issue_text'," date_deleted IS NULL AND category_id={$_REQUEST['category_id']}");
+                        }                        
+                        ?>
                     </select>
                 </div>
                 <div class="span2">
-                    <label>Non-Conformity</label>
+                    <label>Status</label>
                     <select type="text" id="response" name="response" class="input-block-level">
                         <option value="0">Any</option>
-                        <option value="1">Yes</option>
-                        <option value="-1">No</option>
+                        <option value="1" <?php echo ($_REQUEST['response']==1)?"selected":""?>>Doesn't Conform</option>
+                        <option value="-1" <?php echo ($_REQUEST['response']==-1)?"selected":""?>>Conforms</option>
                     </select>
                 </div>
             </div>
@@ -219,10 +262,10 @@ echo multi_drop_down($params1);
                                 else{
                                   $_SESSION['query']=$query;  
                                 }
-                                $content=query($query." ORDER BY ".$ob,true);
+                                $content=query($query." ORDER BY ".$ob);
                                   
-				$total=count($content);
 				if(is_array($content)){
+				$total=count($content);
 					$num_per_page=15;		//number of rows to show on each page
 				
 					//determine where the results should start displaying form
@@ -241,6 +284,9 @@ echo multi_drop_down($params1);
 						$content[$i]['is_active']=$content[$i]['is_active']==1?"Active":"Disabled";
 					}
 				}
+                                else{
+                                    $total=0;
+                                }
 				$field_names=array("isite_name"=>"Site Name","region_name"=>"Region","district_name"=>"District","operator_name"=>"Operator");
 				$field_sizes=array("isite_name"=>250,"region_name"=>150,"district_name"=>200,"operator_name"=>150);
 				$actions=array(
@@ -250,7 +296,7 @@ echo multi_drop_down($params1);
 					       );
 				//echo "<div style='float:right; width:400px'><form onsubmit='location.href=\"?p=isite&loc=pages&s=\"+this.s.value; return false;'>Search: <input type='text' name='s' value='{$_REQUEST['s']}' size='30' /><input type='button' value='Go' onclick='location.href=\"?p=isite&loc=pages&s=\"+this.form.s.value' /></form></div>";
 				//echo "<div style='text-align: right'>Total: {$total}<br/></div>";
-				echo "<h4>Query Results - {$total} cell site(s)</h4>";
+				echo isset($_REQUEST['qt'])?"<h4>Query Results - {$total} cell site(s)</h4>":"";
 				echo "<div class='clear'></div>";
 
                                 echo display_table($content,$field_names,$field_sizes,$actions);

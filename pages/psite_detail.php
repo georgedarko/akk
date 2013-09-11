@@ -86,13 +86,13 @@
                                         PD{$i}
                                 </td>
                                 <td class='text-bold'>
-                                        {$data['pd'.$i]} W/m2
+                                        {$data['pd'.$i]} W/m<sup>2</sup>
                                 </td>
                                 <td>
                                         IC{$i}
                                 </td>
                                 <td class='text-bold'>
-                                        {$data['ic'.$i]} W/m2
+                                        {$data['ic'.$i]} W/m<sup>2</sup>
                                 </td>
                              </tr>
                                 ";
@@ -100,5 +100,8 @@
                         ?>
 
 	</table>
+        <h5>F = Frequency</h5>
+        <h5>PD = Power Density</h5>
+        <h5>IC = Icnirp</h5>        
         <a href="?p=query_icnirp&loc=forms&qt=3" class="btn btn-success">Back</a>
 </div>

@@ -94,7 +94,7 @@ function drop_downs($table_name, $id_value, $name_value, $order_by_field = false
     $link = mysqli_open();
     $queryString = "SELECT * FROM " . $table_name . ($where_criteria == false ? "" : " WHERE " . $where_criteria) . ($order_by_field == false ? "" : " ORDER BY " . $order_by_field);
     $query = mysqli_query($link, $queryString);
-    //echo mysql_error().$queryString;
+    echo mysql_error().$queryString;
     while ($row = mysqli_fetch_assoc($query)) {
         $id = $row[$id_value];
         $name = "";

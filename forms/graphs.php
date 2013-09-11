@@ -1,6 +1,6 @@
 <script type="text/javascript">
 function validate_values(frm){
-    /*elements=document.getElementsByName('operator_id[]');
+    elements=document.getElementsByName('operator_id[]');
     var isset=false;
     for (var i=0;i<elements.length;i++){
         if (elements[i].checked){
@@ -8,7 +8,7 @@ function validate_values(frm){
             break;
            
         }
-    }*/
+    }
     if (!isset){
         alert ("Choose one or more operators")
         return false;
@@ -49,7 +49,7 @@ $params1[1]['array_name']="issue_array";
 $params1[1]['default_text']="Select an Issue";
 $params1[1]['item_id']="issue_id";
 $params1[1]['item_name']="issue_text";
-$params1[1]['data']=query("SELECT * FROM akk_issue");
+$params1[1]['data']=query("SELECT DISTINCT i.* FROM akk_issue i, akk_isite_issue ii WHERE i.issue_id=ii.issue_id AND response+non_compliant_response<>0");
 echo multi_drop_down($params1);
 ?>
 </script>
@@ -62,13 +62,25 @@ echo multi_drop_down($params1);
                     <label>Category</label>
                     <select type="text" id="category_id" name="category_id"class="input-block-level" onchange="reload_options(this.value,this.form.issue_id,issue_array);">
                         <option value="0">Select a Category</option>
-                        <?php drop_downs('akk_category','category_id','category_name','category_name',' date_deleted IS NULL')?>                        
+                        <?php 
+                        if ($_REQUEST['category_id']!=0){
+                            drop_downs_selected('akk_category c,akk_issue i, akk_isite_issue ii','category_id','category_name',$_REQUEST['category_id'],'category_name'," c.date_deleted IS NULL AND i.date_deleted IS NULL AND ii.date_deleted IS NULL AND c.category_id=i.category_id AND i.issue_id=ii.issue_id AND response+non_compliant_response<>0 GROUP BY c.category_id");
+                        }
+                        else{
+                            drop_downs('akk_category c,akk_issue i, akk_isite_issue ii','category_id','category_name','category_name'," c.date_deleted IS NULL AND i.date_deleted IS NULL AND ii.date_deleted IS NULL AND i.issue_id=ii.issue_id AND c.category_id=i.category_id  AND response+non_compliant_response<>0 GROUP BY c.category_id");
+                        }    
+                        ?>                        
                     </select>
                 </div>
                 <div class="span5">
                     <label>Issue</label>
                     <select type="text" id="issue_id" name="issue_id" class="input-block-level">
-                        <option value="0">All Issues</option>
+                        <option value="0">Select an Issue</option>
+                        <?php
+                        if ($_REQUEST['issue_id']!="0"){
+                            drop_downs_selected('akk_issue i, akk_isite_issue ii','issue_id','issue_text',$_REQUEST['issue_id'],'issue_text'," i.date_deleted IS NULL AND ii.date_deleted IS NULL AND category_id={$_REQUEST['category_id']} AND i.issue_id=ii.issue_id AND response+non_compliant_response<>0 GROUP BY i.issue_id");
+                        }                        
+                        ?>
                     </select>
                 </div>
                 <!-- div class="span2">
@@ -86,29 +98,51 @@ echo multi_drop_down($params1);
                     <label>Region</label>
                     <select id="region_id" name="region_id" class="input-block-level" onchange="reload_options(this.value,this.form.district_id,district_array);">
                         <option value="0">All Region</option>
-                        <?php drop_downs('akk_region','region_id','region_name','region_name',' date_deleted IS NULL')?>
+                  <?php 
+                  if ($_REQUEST['region_id']!="0"){
+                    drop_downs_selected('akk_region','region_id','region_name',$_REQUEST['region_id'],'region_name',' date_deleted IS NULL');
+                  }
+                  else{
+                      drop_downs('akk_region','region_id','region_name','region_name',' date_deleted IS NULL');
+                  }
+                            ?>
                     </select>
                 </div>
                 <div class="span3">
                     <label>District</label>
                     <select id="district_id" name="district_id" class="input-block-level">
                         <option value="0">All Districts</option>
-                    </select>
+                     <?php 
+                        if ($_REQUEST['district_id']!="0"){
+                            drop_downs_selected('akk_district','district_id','district_name',$_REQUEST['district_id'],'district_name'," date_deleted IS NULL AND region_id={$_REQUEST['region_id']}");
+                        }
+                    ?>
+                   </select>
                 </div>
                 <div class="span5">
                     <label>Operator</label>
                     <?php
                     $opts=query("SELECT * FROM akk_operator WHERE date_deleted IS NULL");
-                    if (is_array($opts)){
-                        foreach ($opts as $o){
+                if (is_array($opts)){
+                    foreach ($opts as $o){
+                        if (isset($_REQUEST['operator_id'])){
                             echo "
-                <label class='checkbox inline'>
-                    <input type='checkbox' checked name='operator_id[]' value='".$o['operator_id']."'> {$o['operator_name']}
-                </label>
+                                <label class='checkbox inline'>
+                                    <input type='checkbox'  name='operator_id[]' ".(in_array($o['operator_id'],$_REQUEST['operator_id'])?"checked":"")." value='".$o['operator_id']."'> {$o['operator_name']}
+                                </label>
+
+                                ";
+                        }
+                        else{
+                            echo "
+                                <label class='checkbox inline'>
+                                    <input type='checkbox' checked name='operator_id[]' value='".$o['operator_id']."'> {$o['operator_name']}
+                                </label>
 
                                 ";
                         }
                     }
+                }
                     ?>
                 </div>
             </div>
@@ -165,9 +199,10 @@ echo multi_drop_down($params1);
                                                 WHERE o.operator_id IN (1,2,3,4,5,6)
                                                 GROUP BY o.operator_id",true);
                         */
+                                }
 
                                     //form the xml for the graph
-                                    $data_string="<graph caption='Cell Site Count' xAxisName='Operator' yAxisName='Number of Cell Sites' showNames='1' showValues='0' rotateNames='0' showColumnShadow='1' animation='1' showAlternateHGridColor='1' AlternateHGridColor='ff5904' divLineColor='ff5904' divLineAlpha='20' alternateHGridAlpha='5' decimalPrecision='0' canvasBorderColor='666666' baseFontColor='666666'>";
+                                    $data_string="<graph caption='Non-Compliant Cell Site Count' xAxisName='Operator' yAxisName='Number of Cell Sites' showNames='1' showValues='1' rotateNames='0' showColumnShadow='1' animation='1' showAlternateHGridColor='1' numDivLines='2' AlternateHGridColor='ff5904' divLineColor='ff5904' divLineAlpha='20' alternateHGridAlpha='5' decimalPrecision='0' canvasBorderColor='666666' baseFontColor='666666'>";
                                     //only add data if  results were returned 
 
                                     if (is_array($data)){
@@ -176,10 +211,9 @@ echo multi_drop_down($params1);
                                         }
                                     }
                                     else{
-                                        echo "No data found.";
+                                        //echo "No data found.";
                                     }
                                     $data_string.="</graph>";
-                                }
                                 ?>
                                 <div id="cell_frequency_div">The chart will appear within this DIV. This text will be replaced by the chart.</div>
                                 <script type="text/javascript">

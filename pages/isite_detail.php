@@ -91,7 +91,7 @@
                                         {$i['issue_text']}
                                 </td>
                                 <td>
-                                        <a  class='text-bold {$color}' href = \"../../akk1/{$i['image_url']}\" rel=\"lightbox\">".yes_no($i['response'])."</a>
+                                        <a  class='text-bold {$color}' href = \"../../akk1/{$i['image_url']}\" title='{$i['issue_text']}' rel=\"lightbox\">".yes_no($i['response'])."</a>
                                 </td>
                              </tr>
                                 ";

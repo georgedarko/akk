@@ -2,12 +2,12 @@
 <div class="span3">
 <script type="text/javascript">
 function validate_values(frm){
-    element=frm.region_id;
+    /*element=frm.region_id;
     if (element.options[element.selectedIndex].value=="0"){
         alert ("Select a Region");
         element.focus();
         return false;
-    }
+    }*/
     elements=document.getElementsByName('operator_id[]');
     var isset=false;
     for (var i=0;i<elements.length;i++){
@@ -88,12 +88,12 @@ $params[0]['array_name']="region_array";
 $params[0]['default_text']="Select Region";
 $params[0]['item_id']="region_id";
 $params[0]['item_name']="region_name";
-$params[0]['data']=query("SELECT * FROM akk_region ORDER BY district_name ASC");
+$params[0]['data']=query("SELECT * FROM akk_region ORDER BY region_name ASC");
 $params[1]['array_name']="district_array";
 $params[1]['default_text']="All Districts";
 $params[1]['item_id']="district_id";
 $params[1]['item_name']="district_name";
-$params[1]['data']=query("SELECT * FROM akk_district ORDER BY district_name ASC");
+$params[1]['data']=query("SELECT DISTINCT d.* FROM akk_district d, akk_psite p WHERE d.district_id=p.district_id ORDER BY district_name ASC");
 echo multi_drop_down($params);
 ?>
 </script>
@@ -102,7 +102,7 @@ echo multi_drop_down($params);
 	  <div class="control-group">
 	    <label class="control-label" for="cell_site">Cell Site ID/Name</label>
 	    <div class="controls">
-	      <input type="text" id="cell_site" name="cell_site" placeholder="Id/Name" class="input-block-level">
+	      <input type="text" value="<?php echo $_REQUEST['cell_site'] ?>" id="cell_site" name="cell_site" placeholder="Id/Name" class="input-block-level">
 	    </div>
 	  </div>
 	  <div class="control-group">
@@ -118,7 +118,14 @@ echo multi_drop_down($params);
 	    <div class="controls">
 	      <select id="region_id" name="region_id" class="input-block-level" onchange="reload_options(this.value,this.form.district_id,district_array);">
                   <option value="0">Select Region</option>
-                  <?php drop_downs('akk_region','region_id','region_name','region_name',' date_deleted IS NULL')?>
+                  <?php 
+                  if ($_REQUEST['region_id']!="0"){
+                    drop_downs_selected('akk_region','region_id','region_name',$_REQUEST['region_id'],'region_name',' date_deleted IS NULL');
+                  }
+                  else{
+                      drop_downs('akk_region','region_id','region_name','region_name',' date_deleted IS NULL');
+                  }
+                            ?>
 	      </select>
 	    </div>
 	  </div>
@@ -127,6 +134,11 @@ echo multi_drop_down($params);
 	    <div class="controls">
 	      <select id="district_id" name="district_id" class="input-block-level">
                   <option value="0">All Districts</option>
+                  <?php 
+                    if ($_REQUEST['district_id']!="0"){
+                        drop_downs_selected('akk_district','district_id','district_name',$_REQUEST['district_id'],'district_name'," date_deleted IS NULL AND region_id={$_REQUEST['region_id']}");
+                    }
+                  ?>
 	      </select>
 	    </div>
 	  </div>
@@ -136,12 +148,22 @@ echo multi_drop_down($params);
                 $opts=query("SELECT * FROM akk_operator WHERE date_deleted IS NULL");
                 if (is_array($opts)){
                     foreach ($opts as $o){
-                        echo "
- 	      <label class='checkbox'>
-	        <input type='checkbox' checked name='operator_id[]' value='".$o['operator_id']."' class='input-block-level'> {$o['operator_name']}
-	      </label>
-                           
-                            ";
+                        if (isset($_REQUEST['operator_id'])){
+                            echo "
+                                <label class='checkbox'>
+                                    <input type='checkbox'  name='operator_id[]' ".(in_array($o['operator_id'],$_REQUEST['operator_id'])?"checked":"")." value='".$o['operator_id']."' class='input-block-level'> {$o['operator_name']}
+                                </label>
+
+                                ";
+                        }
+                        else{
+                            echo "
+                                <label class='checkbox'>
+                                    <input type='checkbox' checked name='operator_id[]' value='".$o['operator_id']."' class='input-block-level'> {$o['operator_name']}
+                                </label>
+
+                                ";
+                        }
                     }
                 }
                 ?>
@@ -151,18 +173,18 @@ echo multi_drop_down($params);
 	  <div class="control-group">
 	    <label class="control-label" for="f_value">F values between</label>
 	    <div class="controls">
-	      <input type="text" id="f_value_min" name="f_value_min" placeholder="" class="input-block-level" style="width:40%">
-	      &nbsp;&nbsp;AND&nbsp;&nbsp; <input type="text" id="f_value_max" name="f_value_max" placeholder="" class="input-block-level" style="width:40%">
+	      <input type="text" id="f_value_min" value="<?php echo $_REQUEST['f_value_min'] ?>" name="f_value_min" placeholder="" class="input-block-level" style="width:40%">
+	      &nbsp;&nbsp;AND&nbsp;&nbsp; <input type="text" value="<?php echo $_REQUEST['f_value_max'] ?>" id="f_value_max" name="f_value_max" placeholder="" class="input-block-level" style="width:40%">
 	    </div>
 	    <label class="control-label" for="pd_value">PD values between</label>
 	    <div class="controls">
-	      <input type="text" id="pd_value_min" name="pd_value_min" placeholder="" class="input-block-level" style="width:40%">
-	      &nbsp;&nbsp;AND&nbsp;&nbsp; <input type="text" id="pd_value_max" name="pd_value_max" placeholder="" class="input-block-level" style="width:40%">
+	      <input type="text" id="pd_value_min" value="<?php echo $_REQUEST['pd_value_min'] ?>" name="pd_value_min" placeholder="" class="input-block-level" style="width:40%">
+	      &nbsp;&nbsp;AND&nbsp;&nbsp; <input type="text" id="pd_value_max" value="<?php echo $_REQUEST['pd_value_max'] ?>" name="pd_value_max" placeholder="" class="input-block-level" style="width:40%">
 	    </div>
 	    <label class="control-label" for="ic_value">IC values between</label>
 	    <div class="controls">
-	      <input type="text" id="ic_value_min" name="ic_value_min" placeholder="" class="input-block-level" style="width:40%">
-	      &nbsp;&nbsp;AND&nbsp;&nbsp; <input type="text" id="ic_value_max" name="ic_value_max" placeholder="" class="input-block-level" style="width:40%">
+	      <input type="text" id="ic_value_min" value="<?php echo $_REQUEST['ic_value_min'] ?>" name="ic_value_min" placeholder="" class="input-block-level" style="width:40%">
+	      &nbsp;&nbsp;AND&nbsp;&nbsp; <input type="text" id="ic_value_max" value="<?php echo $_REQUEST['ic_value_max'] ?>" name="ic_value_max" placeholder="" class="input-block-level" style="width:40%">
 	    </div>
 	  </div>
 	  <div class="control-group">
@@ -224,7 +246,7 @@ echo multi_drop_down($params);
                                     if ($_REQUEST['district_id']!=0){
                                         $s.=" AND d.district_id='{$_REQUEST['district_id']}'";
                                     }
-                                    else{
+                                    elseif ($_REQUEST['region_id']!=0){
                                         $s.=" AND r.region_id='{$_REQUEST['region_id']}'";
                                     }
                                     
@@ -247,8 +269,8 @@ echo multi_drop_down($params);
                                 }
                                 $content=query($query." ORDER BY ".$ob);
                                                    
-				$total=count($content);
 				if(is_array($content)){
+        				$total=count($content);
 					$num_per_page=15;		//number of rows to show on each page
 				
 					//determine where the results should start displaying form
@@ -267,6 +289,9 @@ echo multi_drop_down($params);
 						$content[$i]['is_active']=$content[$i]['is_active']==1?"Active":"Disabled";
 					}
 				}
+                                else{
+                                    $total=0;
+                                }
 				$field_names=array("psite_name"=>"Site Name","region_name"=>"Region","district_name"=>"District","operator_name"=>"Operator");
 				$field_sizes=array("psite_name"=>250,"region_name"=>150,"district_name"=>200,"operator_name"=>150);
 				$actions=array(
@@ -276,7 +301,7 @@ echo multi_drop_down($params);
 					       );
 				//echo "<div style='float:right; width:400px'><form onsubmit='location.href=\"?p=psite&loc=pages&s=\"+this.s.value; return false;'>Search: <input type='text' name='s' value='{$_REQUEST['s']}' size='30' /><input type='button' value='Go' onclick='location.href=\"?p=psite&loc=pages&s=\"+this.form.s.value' /></form></div>";
 				//echo "<div style='text-align: right'>Total: {$total}<br/></div>";
-				echo "<h4>Query Results - {$total} cell site(s)</h4>";
+				echo isset($_REQUEST['qt'])?"<h4>Query Results - {$total} cell site(s)</h4>":"";
 				echo "<div class='clear'></div>";
 
                                 echo display_table($content,$field_names,$field_sizes,$actions);

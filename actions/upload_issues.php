@@ -11,7 +11,7 @@ foreach ($imgs as $i){
     }
 }    echo implode(",",$akk);
 die('terminated'.count($akk));
-$handle = fopen("temp.csv", "r");
+$handle = fopen("temp_un.csv", "r");
 $data = fgetcsv($handle);
 $fields=array("isite_id","cell_site_id","isite_name","district_id","date_added","added_by");
 $fields_i=array("isite_id","issue_id","response","image_url","date_added","added_by");
@@ -116,9 +116,10 @@ function fetch_operators($operator_name){
 }
 
 function yes_no($val){
-    if ($val==1) return "YES";
-    if (strtoupper($val)=="YES") return 1;
+    /*if ($val==1) return "YES";
+    if (strtoupper(trim($val))=="YES") return 1;
     if ($val==-1) return "NO";
-    if (strtoupper($val)=="YES") return -1;
+    if (strtoupper(trim($val))=="YES") return -1;*/
+    return 15;
 }
 ?>
